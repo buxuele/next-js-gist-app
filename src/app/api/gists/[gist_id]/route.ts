@@ -1,18 +1,14 @@
 import { NextResponse } from 'next/server';
 import { loadGists, saveGists } from '@/lib/data';
 
-// 定义第二个参数的类型，让代码更清晰
-type RouteContext = {
-  params: {
-    gist_id: string;
-  }
-}
-
 /**
  * 处理 GET /api/gists/[gist_id] 请求
  */
-export async function GET(request: Request, context: RouteContext) {
-  // 在函数内部进行解构
+export async function GET(
+  request: Request,
+  // 直接在这里写出最原始、最精确的类型，放弃任何别名
+  context: { params: { gist_id: string } }
+) {
   const { gist_id } = context.params; 
   const gists = await loadGists();
   const gist = gists.find(g => g.id === gist_id);
@@ -26,7 +22,10 @@ export async function GET(request: Request, context: RouteContext) {
 /**
  * 处理 PUT /api/gists/[gist_id] 请求 (用于修改)
  */
-export async function PUT(request: Request, context: RouteContext) {
+export async function PUT(
+  request: Request,
+  context: { params: { gist_id: string } }
+) {
   const { gist_id } = context.params;
   const data = await request.json();
   const gists = await loadGists();
@@ -48,7 +47,10 @@ export async function PUT(request: Request, context: RouteContext) {
 /**
  * 处理 DELETE /api/gists/[gist_id] 请求 (用于删除)
  */
-export async function DELETE(request: Request, context: RouteContext) {
+export async function DELETE(
+  request: Request,
+  context: { params: { gist_id: string } }
+) {
   const { gist_id } = context.params;
   const gists = await loadGists();
   const gistsToKeep = gists.filter(gist => gist.id !== gist_id);
