@@ -1,12 +1,8 @@
 import { NextResponse } from 'next/server';
 import { loadGists, saveGists } from '@/lib/data';
 
-/**
- * 处理 GET /api/gists/[gist_id] 请求
- */
 export async function GET(
   request: Request,
-  // 直接在这里写出最原始、最精确的类型，放弃任何别名
   context: { params: { gist_id: string } }
 ) {
   const { gist_id } = context.params; 
@@ -19,9 +15,6 @@ export async function GET(
   return NextResponse.json(gist);
 }
 
-/**
- * 处理 PUT /api/gists/[gist_id] 请求 (用于修改)
- */
 export async function PUT(
   request: Request,
   context: { params: { gist_id: string } }
@@ -44,9 +37,6 @@ export async function PUT(
   return NextResponse.json(gistToUpdate);
 }
 
-/**
- * 处理 DELETE /api/gists/[gist_id] 请求 (用于删除)
- */
 export async function DELETE(
   request: Request,
   context: { params: { gist_id: string } }
