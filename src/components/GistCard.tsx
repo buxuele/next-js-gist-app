@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
+// import Link from 'next/link';
 import { Gist } from '@/lib/data';
 import hljs from 'highlight.js';
 
@@ -63,12 +63,8 @@ export default function GistCard({ gist, onDelete, onEdit }: GistCardProps) {
   return (
     <div className="card" id={`gist-card-${gist.id}`}>
       <div className="card-header">
-        <Link href={`/gist/${gist.id}`} target="_blank" className="card-header-link">
-          <div className="header-info" title={gist.description}>
-            <div className="gist-filename">{gist.filename}</div>
-            <div className="gist-description">{gist.description}</div>
-          </div>
-        </Link>
+       
+
         <div className="actions">
           <button onClick={() => onEdit(gist)} className="btn btn-sm btn-icon-text btn-edit" title="修改"><i className="bi bi-pencil-square"></i><span>修改</span></button>
           <button onClick={handleDelete} className="btn btn-sm btn-icon-text btn-delete" title="删除"><i className="bi bi-trash"></i><span>删除</span></button>
