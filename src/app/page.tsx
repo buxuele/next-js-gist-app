@@ -1,7 +1,15 @@
 import GistList from '@/components/GistList';
 import { loadGists } from '@/lib/data';
 
-export default async function HomePage() {
+interface HomePageProps {
+  searchParams?: { [key: string]: string | string[] | undefined };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default async function HomePage({ searchParams: _searchParams }: HomePageProps) {
+  // searchParams 在当前逻辑中未使用，但类型已定义以保持一致性
+  // console.log(_searchParams);
+
   // 1. 加载所有的 gists
   const gists = await loadGists();
   
