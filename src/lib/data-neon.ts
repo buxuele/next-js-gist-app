@@ -172,6 +172,7 @@ export async function getGist(id: string): Promise<Gist | null> {
 /**
  * 删除单个 gist
  */
+// --- 修改为 (处理可能的 null) ---
 export async function deleteGist(id: string): Promise<boolean> {
   try {
     const client = await pool.connect();
@@ -179,12 +180,14 @@ export async function deleteGist(id: string): Promise<boolean> {
     client.release();
 
     console.log("Successfully deleted gist from Neon");
-    return result.rowCount > 0;
+    // 如果 result.rowCount 是 null，则我们视其为 0。
+    return (result.rowCount ?? 0) > 0; 
   } catch (error) {
     console.error("Error deleting gist from Neon:", error);
     return false;
   }
 }
+
 
 /**
  * 获取 gists 统计信息

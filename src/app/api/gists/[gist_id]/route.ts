@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import { getGist, saveGist, deleteGist } from "@/lib/data-adapter";
+// 从 data 导入 Gist 类型，确保类型安全
+// import type { Gist } from "@/lib/data"; 
+// 从适配器导入所有需要用到的函数
+import { getGist, saveGist, loadGists, saveGists } from "@/lib/data-adapter";
 import { validateGistData } from "@/lib/utils";
 
 export async function GET(
