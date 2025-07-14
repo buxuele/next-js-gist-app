@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
-// 从 data.ts 导入 Gist 类型定义，以确保类型安全
+// 导入 NextResponse 和 NextRequest 类型
+import { NextResponse, type NextRequest } from "next/server";
+// 从 data.ts 导入 Gist 类型定义
 import type { Gist } from "@/lib/data";
-// 从适配器导入所有需要用到的数据操作函数
+// 从适配器导入数据操作函数
 import {
   getGist,
   saveGist,
@@ -10,15 +11,19 @@ import {
 } from "@/lib/data-adapter";
 import { validateGistData } from "@/lib/utils";
 
+// 定义上下文参数的类型，这是最清晰的方式
+type RouteContext = {
+  params: {
+    gist_id: string;
+  };
+};
+
 /**
  * 处理获取单个 Gist 的 GET 请求
  */
-export async function GET(
-  request: Request,
-  { params }: { params: { gist_id: string } } // <- 标准的 Next.js 参数类型
-) {
+export async function GET(request: NextRequest, context: RouteContext) {
   try {
-    const { gist_id } = params; // 直接从解构后的 params 中获取
+    const { gist_id } = context.params;
     const gist = await getGist(gist_id);
 
     if (!gist) {
@@ -37,12 +42,9 @@ export async function GET(
 /**
  * 处理更新单个 Gist 的 PUT 请求
  */
-export async function PUT(
-  request: Request,
-  { params }: { params: { gist_id: string } } // <- 标准的 Next.js 参数类型
-) {
+export async function PUT(request: NextRequest, context: RouteContext) {
   try {
-    const { gist_id } = params;
+    const { gist_id } = context.params;
     const data = await request.json();
 
     const validation = validateGistData(data);
@@ -73,15 +75,11 @@ export async function PUT(
 /**
  * 处理删除单个 Gist 的 DELETE 请求
  */
-export async function DELETE(
-  request: Request,
-  { params }: { params: { gist_id: string } } // <- 标准的 Next.js 参数类型
-) {
+export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
-    const { gist_id } = params;
+    const { gist_id } = context.params;
     const gists = await loadGists();
-    
-    // 为 filter 回调中的参数指定 Gist 类型，避免 any 错误
+
     const gistsToKeep = gists.filter((gist: Gist) => gist.id !== gist_id);
 
     if (gists.length === gistsToKeep.length) {
