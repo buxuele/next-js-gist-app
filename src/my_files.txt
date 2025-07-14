@@ -213,7 +213,10 @@ export async function POST(request: Request) {
 文件: D:\next_js\next-js-gist-app\src\app\api\gists\[gist_id]\route.ts
 内容:
 import { NextResponse } from "next/server";
-import { getGist, saveGist } from "@/lib/data-adapter";
+// 从 data 导入 Gist 类型，确保类型安全
+// import type { Gist } from "@/lib/data"; 
+// 从适配器导入所有需要用到的函数
+import { getGist, saveGist, loadGists, saveGists } from "@/lib/data-adapter";
 import { validateGistData } from "@/lib/utils";
 
 export async function GET(
@@ -1310,6 +1313,7 @@ export async function getGist(id: string): Promise<Gist | null> {
 /**
  * 删除单个 gist
  */
+// --- 修改为 (处理可能的 null) ---
 export async function deleteGist(id: string): Promise<boolean> {
   try {
     const client = await pool.connect();
@@ -1317,12 +1321,14 @@ export async function deleteGist(id: string): Promise<boolean> {
     client.release();
 
     console.log("Successfully deleted gist from Neon");
-    return result.rowCount > 0;
+    // 如果 result.rowCount 是 null，则我们视其为 0。
+    return (result.rowCount ?? 0) > 0; 
   } catch (error) {
     console.error("Error deleting gist from Neon:", error);
     return false;
   }
 }
+
 
 /**
  * 获取 gists 统计信息
