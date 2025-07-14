@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { loadGists, saveGists } from "@/lib/data";
+import { getGist, saveGist, deleteGist } from "@/lib/data-adapter";
 import { validateGistData } from "@/lib/utils";
 
 export async function GET(
@@ -8,8 +8,7 @@ export async function GET(
 ) {
   try {
     const { gist_id } = context.params;
-    const gists = await loadGists();
-    const gist = gists.find((g) => g.id === gist_id);
+    const gist = await getGist(gist_id);
 
     if (!gist) {
       return NextResponse.json({ error: "Gist not found" }, { status: 404 });
@@ -41,20 +40,15 @@ export async function PUT(
       );
     }
 
-    const gists = await loadGists();
-    const gistToUpdate = gists.find((gist) => gist.id === gist_id);
+    // 使用适配器的 saveGist 方法
+    const updatedGist = await saveGist({
+      id: gist_id,
+      description: data.description.trim(),
+      filename: data.filename?.trim(),
+      content: data.content.trim(),
+    });
 
-    if (!gistToUpdate) {
-      return NextResponse.json({ error: "Gist not found" }, { status: 404 });
-    }
-
-    gistToUpdate.description = data.description.trim();
-    gistToUpdate.filename = data.filename?.trim() || gistToUpdate.filename;
-    gistToUpdate.content = data.content.trim();
-    gistToUpdate.updated_at = Date.now();
-
-    await saveGists(gists);
-    return NextResponse.json(gistToUpdate);
+    return NextResponse.json(updatedGist);
   } catch (error) {
     console.error("Error updating gist:", error);
     return NextResponse.json(

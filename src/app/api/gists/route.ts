@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { loadGists, saveGists, Gist } from "@/lib/data";
+import { loadGists, saveGist } from "@/lib/data-adapter";
 import { validateGistData } from "@/lib/utils";
-import { randomUUID } from "crypto";
 
 export async function GET() {
   try {
@@ -29,18 +28,12 @@ export async function POST(request: Request) {
       );
     }
 
-    const gists = await loadGists();
-    const newGist: Gist = {
-      id: randomUUID(),
+    // 使用适配器的 saveGist 方法
+    const newGist = await saveGist({
       description: data.description,
       filename: data.filename || "untitled.txt",
       content: data.content,
-      created_at: Date.now(),
-      updated_at: Date.now(),
-    };
-
-    gists.unshift(newGist); // 添加到开头
-    await saveGists(gists);
+    });
 
     return NextResponse.json(newGist, { status: 201 });
   } catch (error) {
