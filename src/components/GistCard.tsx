@@ -20,7 +20,7 @@ export default function GistCard({ gist, onDelete, onEdit }: GistCardProps) {
   const [copyText, setCopyText] = useState("复制");
 
   // 使用 useMemo 缓存计算结果
-  const { lines, isLong, displayLines, displayContent, lineNumbers } =
+  const { isLong, displayContent, lineNumbers } =
     useMemo(() => {
       const lines = gist.content.split("\n");
       const isLong = lines.length > PREVIEW_LINE_COUNT;

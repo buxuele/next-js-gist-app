@@ -69,12 +69,23 @@ export function truncateText(text: string, maxLength: number): string {
 /**
  * 验证gist数据
  */
-export function validateGistData(data: any): {
+
+
+// --- 修改为 ---
+
+// 在函数上方定义一个输入类型
+interface GistValidationData {
+  description?: unknown;
+  content?: unknown;
+}
+
+export function validateGistData(data: GistValidationData): {
   isValid: boolean;
   errors: string[];
 } {
   const errors: string[] = [];
 
+  // 为了安全，我们先检查类型再使用
   if (
     !data.description ||
     typeof data.description !== "string" ||
@@ -91,11 +102,12 @@ export function validateGistData(data: any): {
     errors.push("内容不能为空");
   }
 
-  if (data.description && data.description.length > 200) {
+  // 只有在确定是字符串后才检查长度
+  if (typeof data.description === 'string' && data.description.length > 200) {
     errors.push("描述长度不能超过200个字符");
   }
 
-  if (data.content && data.content.length > 50000) {
+  if (typeof data.content === 'string' && data.content.length > 50000) {
     errors.push("内容长度不能超过50000个字符");
   }
 
