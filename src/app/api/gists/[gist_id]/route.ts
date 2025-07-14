@@ -1,16 +1,24 @@
 import { NextResponse } from "next/server";
-// 从 data 导入 Gist 类型，确保类型安全
-// import type { Gist } from "@/lib/data"; 
-// 从适配器导入所有需要用到的函数
-import { getGist, saveGist, loadGists, saveGists } from "@/lib/data-adapter";
+// 从 data.ts 导入 Gist 类型定义，以确保类型安全
+import type { Gist } from "@/lib/data";
+// 从适配器导入所有需要用到的数据操作函数
+import {
+  getGist,
+  saveGist,
+  loadGists,
+  saveGists,
+} from "@/lib/data-adapter";
 import { validateGistData } from "@/lib/utils";
 
+/**
+ * 处理获取单个 Gist 的 GET 请求
+ */
 export async function GET(
   request: Request,
-  context: { params: { gist_id: string } }
+  { params }: { params: { gist_id: string } } // <- 标准的 Next.js 参数类型
 ) {
   try {
-    const { gist_id } = context.params;
+    const { gist_id } = params; // 直接从解构后的 params 中获取
     const gist = await getGist(gist_id);
 
     if (!gist) {
@@ -26,15 +34,17 @@ export async function GET(
   }
 }
 
+/**
+ * 处理更新单个 Gist 的 PUT 请求
+ */
 export async function PUT(
   request: Request,
-  context: { params: { gist_id: string } }
+  { params }: { params: { gist_id: string } } // <- 标准的 Next.js 参数类型
 ) {
   try {
-    const { gist_id } = context.params;
+    const { gist_id } = params;
     const data = await request.json();
 
-    // 使用新的验证函数
     const validation = validateGistData(data);
     if (!validation.isValid) {
       return NextResponse.json(
@@ -43,7 +53,6 @@ export async function PUT(
       );
     }
 
-    // 使用适配器的 saveGist 方法
     const updatedGist = await saveGist({
       id: gist_id,
       description: data.description.trim(),
@@ -61,14 +70,19 @@ export async function PUT(
   }
 }
 
+/**
+ * 处理删除单个 Gist 的 DELETE 请求
+ */
 export async function DELETE(
   request: Request,
-  context: { params: { gist_id: string } }
+  { params }: { params: { gist_id: string } } // <- 标准的 Next.js 参数类型
 ) {
   try {
-    const { gist_id } = context.params;
+    const { gist_id } = params;
     const gists = await loadGists();
-    const gistsToKeep = gists.filter((gist) => gist.id !== gist_id);
+    
+    // 为 filter 回调中的参数指定 Gist 类型，避免 any 错误
+    const gistsToKeep = gists.filter((gist: Gist) => gist.id !== gist_id);
 
     if (gists.length === gistsToKeep.length) {
       return NextResponse.json({ error: "Gist not found" }, { status: 404 });
