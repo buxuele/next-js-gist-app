@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "type-check": "node scripts/check-types.js",
     "test:build": "node scripts/test-build.js",
+    "verify:fix": "node scripts/verify-fix.js",
     "migrate:neon": "node scripts/migrate-to-neon.js",
     "db:setup": "echo 请在 Neon 控制台执行 database/schema.sql 中的 SQL 语句来创建表"
   },

@@ -56,7 +56,18 @@ unnecessaryDeps.forEach((dep) => {
 });
 
 if (allFilesExist) {
-  console.log("\n🎉 所有检查通过！项目应该可以正常构建。");
+  console.log("\n🎉 所有文件检查通过！");
+
+  // 运行 TypeScript 类型检查
+  console.log("\n🔍 运行 TypeScript 类型检查...");
+  try {
+    require("child_process").execSync("npx tsc --noEmit", { stdio: "inherit" });
+    console.log("✅ TypeScript 类型检查通过！");
+    console.log("\n🎉 项目应该可以正常构建。");
+  } catch (error) {
+    console.log("❌ TypeScript 类型检查失败");
+    process.exit(1);
+  }
 } else {
   console.log("\n❌ 发现问题，请修复后重试。");
   process.exit(1);

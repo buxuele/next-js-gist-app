@@ -1,18 +1,19 @@
-import GistList from '@/components/GistList';
-import { loadGists } from '@/lib/data';
+import GistList from "@/components/GistList";
+import { loadGists } from "@/lib/data";
 
+// Next.js 15 页面组件类型
 interface HomePageProps {
-  searchParams?: { [key: string]: string | string[] | undefined };
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export default async function HomePage({ searchParams: _searchParams }: HomePageProps) {
-  // searchParams 在当前逻辑中未使用，但类型已定义以保持一致性
-  // console.log(_searchParams);
+export default async function HomePage({ searchParams }: HomePageProps) {
+  // 在 Next.js 15 中，searchParams 也是 Promise
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  console.log("Search params:", resolvedSearchParams); // 可以用于将来的搜索功能
 
   // 1. 加载所有的 gists
   const gists = await loadGists();
-  
+
   // 2. 确保最新的在最前面
   const sortedGists = [...gists].sort((a, b) => b.updated_at - a.updated_at);
 
