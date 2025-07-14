@@ -3,22 +3,6 @@ import { Gist } from "./data";
 
 // 根据环境变量决定使用哪种数据存储
 const getDataProvider = async () => {
-  // 生产环境且有 KV 配置
-  if (process.env.NODE_ENV === "production" && process.env.KV_REST_API_URL) {
-    const { loadGists, saveGists, getGist, deleteGist } = await import(
-      "./data-vercel-kv"
-    );
-    return { loadGists, saveGists, getGist, deleteGist };
-  }
-
-  // 有 Supabase 配置
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
-    const { loadGists, saveGists, getGist, deleteGist } = await import(
-      "./data-supabase"
-    );
-    return { loadGists, saveGists, getGist, deleteGist };
-  }
-
   // 优先使用 Neon 数据库（如果有 DATABASE_URL 配置）
   if (process.env.DATABASE_URL) {
     console.log("Using Neon PostgreSQL database");
@@ -29,6 +13,7 @@ const getDataProvider = async () => {
   }
 
   // 默认使用本地文件存储（开发环境）
+  console.log("Using local file storage");
   const { loadGists, saveGists } = await import("./data");
 
   // 为本地存储添加缺失的方法

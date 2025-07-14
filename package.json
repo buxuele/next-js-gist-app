@@ -7,11 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test:build": "node scripts/test-build.js",
     "migrate:neon": "node scripts/migrate-to-neon.js",
-    "db:setup": "echo '请在 Neon 控制台执行 database/schema.sql 中的 SQL 语句来创建表'"
+    "db:setup": "echo 请在 Neon 控制台执行 database/schema.sql 中的 SQL 语句来创建表"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^0.9.0",
+    "@neondatabase/serverless": "^0.9.5",
     "bootstrap": "^5.3.7",
     "highlight.js": "^11.11.1",
     "next": "15.3.4",
