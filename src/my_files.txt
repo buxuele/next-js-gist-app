@@ -1,0 +1,1558 @@
+
+目录: D:\next_js\next-js-gist-app\src\app
+内容: [这是一个目录]
+
+目录: D:\next_js\next-js-gist-app\src\components
+内容: [这是一个目录]
+
+目录: D:\next_js\next-js-gist-app\src\lib
+内容: [这是一个目录]
+
+文件: D:\next_js\next-js-gist-app\src\app\favicon.ico
+内容: [无法作为文本读取，可能是二进制文件]
+
+文件: D:\next_js\next-js-gist-app\src\app\globals.css
+内容:
+/* --- 全局暗黑主题与字体 --- */
+body { background-color: #1a1a1a; color: #e0e0e0; }
+
+/* --- 网格布局容器 --- */
+#gists-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+
+/* --- 卡片样式 --- */
+.card { background-color: transparent; border: 1px solid #444; border-radius: 8px; height: 100%; display: flex; flex-direction: column; transition: box-shadow 0.2s ease-in-out; overflow: hidden; }
+.card:hover { box-shadow: 0 0 15px rgba(0, 188, 212, 0.3); }
+
+/* --- 新增：卡片链接样式，确保它不破坏内部布局 --- */
+.card-header-link {
+    text-decoration: none; /* 去掉下划线 */
+    color: inherit; /* 继承文字颜色，而不是默认的链接蓝色 */
+    display: block; /* 让 <a> 标签像块级元素一样占满一行 */
+}
+.card-header-link:hover {
+    color: inherit; /* 悬浮时也不要变色，让卡片的 hover 效果生效 */
+}
+
+
+/* --- 卡片头部 --- */
+.card-header { background-color: #2c2c2c !important; padding: 0.6rem 1rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; border-bottom: 1px solid #444 !important; flex-shrink: 0; }
+.header-info { min-width: 0; }
+.gist-filename { font-size: 1.1em; font-weight: 600; color: #e91e63; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 0.1rem; }
+.gist-description { font-size: 0.8em; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* --- 按钮样式 --- */
+.actions { display: flex; flex-direction: row; gap: 0.5rem; }
+.actions .btn-icon-text { background-color: transparent; border: 1px solid #444; color: #888; display: flex; flex-direction: column; align-items: center; padding: 0.2rem 0.4rem; line-height: 1.2; transition: all 0.2s ease; }
+.actions .btn-icon-text:hover { color: #ccc; border-color: #888; }
+.actions .btn-icon-text i { font-size: 1.1em; }
+.actions .btn-icon-text span { font-size: 0.7em; margin-top: 2px; }
+.actions .btn-copy { border-color: #00bcd4; color: #00bcd4; }
+.actions .btn-copy:hover { background-color: rgba(0, 188, 212, 0.1); color: #3fffff; border-color: #3fffff; }
+.actions .btn-copy.btn-success-custom { background-color: #28a745 !important; border-color: #28a745 !important; color: #fff !important; }
+
+/* --- 代码区布局 --- */
+.card-body { padding: 0; flex-grow: 1; overflow: hidden; background-color: #212121; display: flex; flex-direction: column; }
+.code-container { display: flex; flex-grow: 1; overflow: hidden; }
+.line-numbers, .code-container pre code { margin: 0; line-height: 1.45; font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 0.875em; }
+.line-numbers, .code-container pre { padding-top: 0.5rem; padding-bottom: 0.5rem; margin: 0; }
+.line-numbers { color: #6c757d; text-align: right; padding-left: 1rem; padding-right: 1rem; border-right: 1px solid #444c56; -webkit-user-select: none; user-select: none; }
+.code-container pre { flex-grow: 1; overflow: auto; }
+.code-container pre code { padding-left: 1rem; padding-right: 1rem; display: block; }
+
+/* --- 脚部 --- */
+.card-footer { background-color: #2c2c2c !important; border-top: 1px dashed #444 !important; padding: 0.2rem !important; flex-shrink: 0; }
+.btn-toggle-expand { width: 100%; border: none; color: #888; font-size: 0.8em; }
+.btn-toggle-expand:hover { background-color: #383838; color: #ccc; }
+
+/* --- 响应式布局 --- */
+@media (max-width: 1600px) { #gists-container { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 1200px) { #gists-container { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 768px) { #gists-container { grid-template-columns: 1fr; } }
+
+文件: D:\next_js\next-js-gist-app\src\app\layout.tsx
+内容:
+import type { Metadata } from "next";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import "./globals.css";
+
+export const metadata: Metadata = {
+  title: "我的代码片段",
+  description: "基于 Next.js 的现代化知识库",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="zh-CN" data-bs-theme="dark">
+      <head>
+        {/* 保留这些全局的 CDN 链接 */}
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+        />
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+        />
+      </head>
+      <body>
+        {/* 
+          导航栏 <nav> 已经从这里移除！
+          因为导航栏的“添加”按钮和 Gist 列表的状态紧密相关，
+          所以它被移动到了 GistList.tsx 组件内部，由它自己管理。
+          这里只负责提供一个最外层的壳子。
+        */}
+
+        {/* {children} 会渲染我们具体的页面，比如带有导航栏的 GistList */}
+        <ErrorBoundary>{children}</ErrorBoundary>
+
+        {/* Bootstrap 的 JS 脚本依然保留在这里 */}
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+          async
+        ></script>
+      </body>
+    </html>
+  );
+}
+
+
+文件: D:\next_js\next-js-gist-app\src\app\page.tsx
+内容:
+import GistList from '@/components/GistList';
+import { loadGists } from '@/lib/data';
+
+interface HomePageProps {
+  searchParams?: { [key: string]: string | string[] | undefined };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default async function HomePage({ searchParams: _searchParams }: HomePageProps) {
+  // searchParams 在当前逻辑中未使用，但类型已定义以保持一致性
+  // console.log(_searchParams);
+
+  // 1. 加载所有的 gists
+  const gists = await loadGists();
+  
+  // 2. 确保最新的在最前面
+  const sortedGists = [...gists].sort((a, b) => b.updated_at - a.updated_at);
+
+  return (
+    <main className="container-fluid mt-4 px-4">
+      {/* 3. 把排序后的完整列表传递给 GistList 组件 */}
+      <GistList initialGists={sortedGists} />
+    </main>
+  );
+}
+
+目录: D:\next_js\next-js-gist-app\src\app\api
+内容: [这是一个目录]
+
+目录: D:\next_js\next-js-gist-app\src\app\gist
+内容: [这是一个目录]
+
+目录: D:\next_js\next-js-gist-app\src\app\api\gists
+内容: [这是一个目录]
+
+文件: D:\next_js\next-js-gist-app\src\app\api\gists\route.ts
+内容:
+import { NextResponse } from "next/server";
+import { loadGists, saveGist } from "@/lib/data-adapter";
+import { validateGistData } from "@/lib/utils";
+
+export async function GET() {
+  try {
+    const gists = await loadGists();
+    return NextResponse.json(gists);
+  } catch (error) {
+    console.error("Error loading gists:", error);
+    return NextResponse.json(
+      { error: "Failed to load gists" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const data = await request.json();
+
+    // 使用新的验证函数
+    const validation = validateGistData(data);
+    if (!validation.isValid) {
+      return NextResponse.json(
+        { error: validation.errors.join(", ") },
+        { status: 400 }
+      );
+    }
+
+    // 使用适配器的 saveGist 方法
+    const newGist = await saveGist({
+      description: data.description,
+      filename: data.filename || "untitled.txt",
+      content: data.content,
+    });
+
+    return NextResponse.json(newGist, { status: 201 });
+  } catch (error) {
+    console.error("Error creating gist:", error);
+    return NextResponse.json(
+      { error: "Failed to create gist" },
+      { status: 500 }
+    );
+  }
+}
+
+
+目录: D:\next_js\next-js-gist-app\src\app\api\gists\[gist_id]
+内容: [这是一个目录]
+
+文件: D:\next_js\next-js-gist-app\src\app\api\gists\[gist_id]\route.ts
+内容:
+import { NextResponse } from "next/server";
+// 从 data.ts 导入 Gist 类型定义，以确保类型安全
+import type { Gist } from "@/lib/data";
+// 从适配器导入所有需要用到的数据操作函数
+import {
+  getGist,
+  saveGist,
+  loadGists,
+  saveGists,
+} from "@/lib/data-adapter";
+import { validateGistData } from "@/lib/utils";
+
+/**
+ * 处理获取单个 Gist 的 GET 请求
+ */
+export async function GET(
+  request: Request,
+  { params }: { params: { gist_id: string } } // <- 标准的 Next.js 参数类型
+) {
+  try {
+    const { gist_id } = params; // 直接从解构后的 params 中获取
+    const gist = await getGist(gist_id);
+
+    if (!gist) {
+      return NextResponse.json({ error: "Gist not found" }, { status: 404 });
+    }
+    return NextResponse.json(gist);
+  } catch (error) {
+    console.error("Error fetching gist:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch gist" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * 处理更新单个 Gist 的 PUT 请求
+ */
+export async function PUT(
+  request: Request,
+  { params }: { params: { gist_id: string } } // <- 标准的 Next.js 参数类型
+) {
+  try {
+    const { gist_id } = params;
+    const data = await request.json();
+
+    const validation = validateGistData(data);
+    if (!validation.isValid) {
+      return NextResponse.json(
+        { error: validation.errors.join(", ") },
+        { status: 400 }
+      );
+    }
+
+    const updatedGist = await saveGist({
+      id: gist_id,
+      description: data.description.trim(),
+      filename: data.filename?.trim(),
+      content: data.content.trim(),
+    });
+
+    return NextResponse.json(updatedGist);
+  } catch (error) {
+    console.error("Error updating gist:", error);
+    return NextResponse.json(
+      { error: "Failed to update gist" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * 处理删除单个 Gist 的 DELETE 请求
+ */
+export async function DELETE(
+  request: Request,
+  { params }: { params: { gist_id: string } } // <- 标准的 Next.js 参数类型
+) {
+  try {
+    const { gist_id } = params;
+    const gists = await loadGists();
+    
+    // 为 filter 回调中的参数指定 Gist 类型，避免 any 错误
+    const gistsToKeep = gists.filter((gist: Gist) => gist.id !== gist_id);
+
+    if (gists.length === gistsToKeep.length) {
+      return NextResponse.json({ error: "Gist not found" }, { status: 404 });
+    }
+
+    await saveGists(gistsToKeep);
+    return NextResponse.json({ message: "删除成功" });
+  } catch (error) {
+    console.error("Error deleting gist:", error);
+    return NextResponse.json(
+      { error: "Failed to delete gist" },
+      { status: 500 }
+    );
+  }
+}
+
+目录: D:\next_js\next-js-gist-app\src\app\gist\[gist_id]
+内容: [这是一个目录]
+
+文件: D:\next_js\next-js-gist-app\src\app\gist\[gist_id]\page.tsx
+内容:
+import { loadGists, Gist } from '@/lib/data';
+import { notFound } from 'next/navigation';
+import hljs from 'highlight.js';
+import 'highlight.js/styles/atom-one-dark.min.css';
+import { GistDetailClientView } from '@/components/GistDetailClientView';
+
+async function getGist(id: string): Promise<Gist | undefined> {
+  const gists = await loadGists();
+  return gists.find(g => g.id === id);
+}
+
+export async function generateMetadata({ params }: { params: { gist_id: string } }) {
+  const gist = await getGist(params.gist_id);
+  if (!gist) { return { title: 'Not Found' }; }
+  return {
+    title: `${gist.filename} - 我的知识库`,
+    description: gist.description,
+  };
+}
+
+export default async function GistDetailPage({ params }: { params: { gist_id: string } }) {
+  const gist = await getGist(params.gist_id);
+
+  if (!gist) { notFound(); }
+
+  const lines = gist.content.split('\n');
+  const lineNumbers = Array.from({ length: lines.length }, (_, i) => i + 1).join('\n');
+  const highlightedCode = hljs.highlight(gist.content, { 
+    language: gist.filename.split('.').pop() || 'plaintext', 
+    ignoreIllegals: true 
+  }).value;
+
+  return (
+    <GistDetailClientView 
+      gist={gist} 
+      lineNumbers={lineNumbers} 
+      highlightedCodeHTML={highlightedCode}
+    />
+  );
+}
+
+文件: D:\next_js\next-js-gist-app\src\components\ErrorBoundary.tsx
+内容:
+"use client";
+
+import React from "react";
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error?: Error;
+}
+
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+  fallback?: React.ComponentType<{ error?: Error; resetError: () => void }>;
+}
+
+class ErrorBoundary extends React.Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
+  }
+
+  resetError = () => {
+    this.setState({ hasError: false, error: undefined });
+  };
+
+  render() {
+    if (this.state.hasError) {
+      if (this.props.fallback) {
+        const FallbackComponent = this.props.fallback;
+        return (
+          <FallbackComponent
+            error={this.state.error}
+            resetError={this.resetError}
+          />
+        );
+      }
+
+      return (
+        <div className="alert alert-danger m-4" role="alert">
+          <h4 className="alert-heading">出现了一些问题</h4>
+          <p>应用遇到了意外错误。请刷新页面重试。</p>
+          {this.state.error && (
+            <details className="mt-2">
+              <summary>错误详情</summary>
+              <pre className="mt-2 text-sm">{this.state.error.message}</pre>
+            </details>
+          )}
+          <hr />
+          <button className="btn btn-outline-danger" onClick={this.resetError}>
+            重试
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+export default ErrorBoundary;
+
+
+文件: D:\next_js\next-js-gist-app\src\components\GistCard.tsx
+内容:
+"use client";
+
+import { useState, useEffect, useMemo } from "react";
+import { Gist } from "@/lib/data";
+import { getLanguageFromFilename, formatTimestamp } from "@/lib/utils";
+import { APP_CONFIG } from "@/lib/constants";
+import hljs from "highlight.js";
+
+interface GistCardProps {
+  gist: Gist;
+  onDelete: (id: string) => void;
+  onEdit: (gist: Gist) => void; // 修改这里，传递整个 gist 对象
+}
+
+// 使用常量文件中的配置
+const { PREVIEW_LINE_COUNT } = APP_CONFIG;
+
+export default function GistCard({ gist, onDelete, onEdit }: GistCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [copyText, setCopyText] = useState("复制");
+
+  // 使用 useMemo 缓存计算结果
+  const { isLong, displayContent, lineNumbers } =
+    useMemo(() => {
+      const lines = gist.content.split("\n");
+      const isLong = lines.length > PREVIEW_LINE_COUNT;
+      const displayLines = isExpanded
+        ? lines
+        : lines.slice(0, PREVIEW_LINE_COUNT);
+      const displayContent = displayLines.join("\n");
+      const lineNumbers = Array.from(
+        { length: displayLines.length },
+        (_, i) => i + 1
+      ).join("\n");
+
+      return { lines, isLong, displayLines, displayContent, lineNumbers };
+    }, [gist.content, isExpanded]);
+
+  useEffect(() => {
+    const currentCard = document.getElementById(`gist-card-${gist.id}`);
+    if (currentCard) {
+      const codeBlock = currentCard.querySelector("pre code");
+      if (codeBlock) {
+        hljs.highlightElement(codeBlock as HTMLElement);
+      }
+    }
+  }, [displayContent, gist.id]);
+
+  const toggleExpand = () => setIsExpanded(!isExpanded);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(gist.content);
+      setCopyText("已复制!");
+      setTimeout(() => setCopyText("复制"), 2000);
+    } catch (err) {
+      console.error("复制失败:", err);
+      setCopyText("失败");
+      setTimeout(() => setCopyText("复制"), 2000);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (window.confirm(`确定要删除片段 "${gist.filename}" 吗？`)) {
+      try {
+        const response = await fetch(`/api/gists/${gist.id}`, {
+          method: "DELETE",
+        });
+        if (!response.ok) {
+          const errorData = await response
+            .json()
+            .catch(() => ({ error: "删除失败" }));
+          throw new Error(errorData.error || "删除失败");
+        }
+        onDelete(gist.id);
+      } catch (error) {
+        console.error("删除请求失败:", error);
+        const errorMessage =
+          error instanceof Error ? error.message : "删除失败，请重试";
+        alert(errorMessage);
+      }
+    }
+  };
+
+  return (
+    <div className="card" id={`gist-card-${gist.id}`}>
+      <div className="card-header">
+        <div className="header-info">
+          <div className="gist-filename">{gist.filename}</div>
+          <div className="gist-description">{gist.description}</div>
+          <div
+            className="gist-timestamp text-muted"
+            style={{ fontSize: "0.7em" }}
+          >
+            {formatTimestamp(gist.updated_at)}
+          </div>
+        </div>
+        <div className="actions">
+          <button
+            onClick={() => onEdit(gist)}
+            className="btn btn-sm btn-icon-text btn-edit"
+            title="修改"
+          >
+            <i className="bi bi-pencil-square"></i>
+            <span>修改</span>
+          </button>
+          <button
+            onClick={handleDelete}
+            className="btn btn-sm btn-icon-text btn-delete"
+            title="删除"
+          >
+            <i className="bi bi-trash"></i>
+            <span>删除</span>
+          </button>
+          <button
+            onClick={handleCopy}
+            className="btn btn-sm btn-icon-text btn-copy"
+            title="复制"
+          >
+            <i className="bi bi-clipboard"></i>
+            <span>{copyText}</span>
+          </button>
+        </div>
+      </div>
+      <div className="card-body">
+        <div className="code-container">
+          <pre className="line-numbers">{lineNumbers}</pre>
+          <pre>
+            <code
+              className={`language-${getLanguageFromFilename(gist.filename)}`}
+            >
+              {displayContent}
+            </code>
+          </pre>
+        </div>
+      </div>
+      {isLong && (
+        <div className="card-footer">
+          <button
+            className="btn btn-sm btn-toggle-expand"
+            onClick={toggleExpand}
+          >
+            {isExpanded ? (
+              <>
+                <i className="bi bi-chevron-up"></i> 收起
+              </>
+            ) : (
+              <>
+                <i className="bi bi-chevron-down"></i> 显示更多
+              </>
+            )}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+文件: D:\next_js\next-js-gist-app\src\components\GistDetailClientView.tsx
+内容:
+"use client";
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { Gist } from '@/lib/data';
+
+interface GistDetailClientViewProps {
+  gist: Gist;
+  lineNumbers: string;
+  highlightedCodeHTML: string;
+}
+
+export function GistDetailClientView({ gist, lineNumbers, highlightedCodeHTML }: GistDetailClientViewProps) {
+  const [copyText, setCopyText] = useState("复制");
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(gist.content);
+      setCopyText("已复制!");
+      setTimeout(() => setCopyText("复制"), 2000);
+    } catch (err) {
+      console.error('复制失败:', err);
+      setCopyText("失败");
+      setTimeout(() => setCopyText("复制"), 2000);
+    }
+  };
+  
+  return (
+    <>
+      <nav className="navbar navbar-expand navbar-dark bg-dark fixed-top" style={{borderBottom: '1px solid #444'}}>
+        <div className="container" style={{maxWidth: '1200px'}}>
+          <Link className="navbar-brand" href="/">
+            <i className="bi bi-arrow-left-circle"></i> 返回主页
+          </Link>
+          <div className="d-flex align-items-center">
+            <span className="navbar-text me-3" title={gist.description}>
+              <strong>{gist.filename}</strong>
+            </span>
+            <button className="btn btn-outline-success btn-sm" onClick={handleCopy}>
+              <i className="bi bi-clipboard"></i> {copyText}
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <main className="container mt-5 pt-3" style={{maxWidth: '1200px'}}>
+        <div className="card">
+          <div className="card-body">
+            <div className="code-container">
+              <pre className="line-numbers">{lineNumbers}</pre>
+              {/* 使用 dangerouslySetInnerHTML 来渲染已经高亮好的 HTML */}
+              <pre><code dangerouslySetInnerHTML={{ __html: highlightedCodeHTML }} /></pre>
+            </div>
+          </div>
+        </div>
+      </main>
+    </>
+  );
+}
+
+文件: D:\next_js\next-js-gist-app\src\components\GistList.tsx
+内容:
+"use client";
+
+import { useState } from "react";
+import { Gist } from "@/lib/data";
+import GistCard from "./GistCard";
+import GistModal from "./GistModal";
+import Link from "next/link";
+import "highlight.js/styles/atom-one-dark.min.css";
+
+interface GistListProps {
+  initialGists: Gist[];
+}
+
+export default function GistList({ initialGists }: GistListProps) {
+  const [gists, setGists] = useState(initialGists);
+  const [showModal, setShowModal] = useState(false);
+  const [gistToEdit, setGistToEdit] = useState<Gist | null>(null);
+
+  const handleOpenModal = (gist: Gist | null) => {
+    setGistToEdit(gist);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setGistToEdit(null);
+  };
+
+  const handleSaveGist = async (gistData: Partial<Gist>): Promise<void> => {
+    const isEditing = !!gistData.id;
+    const url = isEditing ? `/api/gists/${gistData.id}` : "/api/gists";
+    const method = isEditing ? "PUT" : "POST";
+
+    try {
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(gistData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: "未知错误" }));
+        throw new Error(
+          errorData.error || `${isEditing ? "更新" : "创建"}失败`
+        );
+      }
+
+      const savedGist = await response.json();
+
+      if (isEditing) {
+        setGists((currentGists) =>
+          currentGists.map((g) => (g.id === savedGist.id ? savedGist : g))
+        );
+      } else {
+        setGists((currentGists) => [savedGist, ...currentGists]);
+      }
+      handleCloseModal();
+    } catch (error) {
+      console.error("保存失败:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "保存失败，请重试";
+      alert(errorMessage);
+    }
+  };
+
+  const handleDeleteGist = (idToDelete: string) => {
+    setGists((currentGists) =>
+      currentGists.filter((gist) => gist.id !== idToDelete)
+    );
+  };
+
+  return (
+    <>
+      <nav className="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary sticky-top mb-4">
+        <div className="container-fluid px-4">
+          <Link className="navbar-brand" href="/">
+            <i className="bi bi-grid-1x2-fill"></i> 我的知识库
+          </Link>
+          <button
+            className="btn btn-success"
+            onClick={() => handleOpenModal(null)}
+          >
+            <i className="bi bi-plus-circle"></i> 添加
+          </button>
+        </div>
+      </nav>
+
+      {gists.length === 0 ? (
+        <p className="text-center text-muted mt-5">
+          空空如也，快添加你的第一个知识片段吧！
+        </p>
+      ) : (
+        <div id="gists-container">
+          {gists.map((gist) => (
+            <GistCard
+              key={gist.id}
+              gist={gist}
+              onDelete={handleDeleteGist}
+              onEdit={handleOpenModal}
+            />
+          ))}
+        </div>
+      )}
+
+      <GistModal
+        show={showModal}
+        onClose={handleCloseModal}
+        onSave={handleSaveGist}
+        gistToEdit={gistToEdit}
+      />
+    </>
+  );
+}
+
+
+文件: D:\next_js\next-js-gist-app\src\components\GistModal.tsx
+内容:
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import { Gist } from "@/lib/data";
+import { detectFileType, validateGistData } from "@/lib/utils";
+import type { Modal } from "bootstrap";
+
+interface GistModalProps {
+  show: boolean;
+  onClose: () => void;
+  onSave: (gistData: Partial<Gist>) => Promise<void>;
+  gistToEdit: Gist | null;
+}
+
+export default function GistModal({
+  show,
+  onClose,
+  onSave,
+  gistToEdit,
+}: GistModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
+  const [modalInstance, setModalInstance] = useState<Modal | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [description, setDescription] = useState("");
+  const [filename, setFilename] = useState("");
+  const [content, setContent] = useState("");
+
+  useEffect(() => {
+    if (show && gistToEdit) {
+      setDescription(gistToEdit.description);
+      setFilename(gistToEdit.filename);
+      setContent(gistToEdit.content);
+    } else if (!show) {
+      setDescription("");
+      setFilename("");
+      setContent("");
+    }
+  }, [show, gistToEdit]);
+
+  useEffect(() => {
+    if (!modalRef.current) return;
+
+    // 只在客户端动态导入 bootstrap
+    import("bootstrap").then((bootstrap) => {
+      const modal = bootstrap.Modal.getOrCreateInstance(modalRef.current!);
+      setModalInstance(modal);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (modalInstance) {
+      if (show) {
+        modalInstance.show();
+      } else {
+        modalInstance.hide();
+      }
+    }
+  }, [show, modalInstance]);
+
+  const handleSave = async () => {
+    // 使用新的验证函数
+    const validation = validateGistData({ description, content });
+    if (!validation.isValid) {
+      alert(validation.errors.join("\n"));
+      return;
+    }
+
+    // 如果没有提供文件名，根据内容推测一个
+    let finalFilename = filename.trim();
+    if (!finalFilename) {
+      const detected = detectFileType(content);
+      finalFilename = `untitled.${detected.extension}`;
+    }
+
+    setIsLoading(true);
+    try {
+      await onSave({
+        id: gistToEdit?.id,
+        description: description.trim(),
+        filename: finalFilename,
+        content: content.trim(),
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 唯一的改动在这里：移除了那个错误的 onHide={onClose} 属性
+  return (
+    <div
+      className="modal fade"
+      ref={modalRef}
+      tabIndex={-1}
+      aria-labelledby="gistModalLabel"
+      aria-hidden="true"
+    >
+      <div className="modal-dialog modal-lg">
+        <div className="modal-content">
+          <div className="modal-header">
+            <h5 className="modal-title" id="gistModalLabel">
+              {gistToEdit ? "编辑片段" : "添加新的片段"}
+            </h5>
+            <button
+              type="button"
+              className="btn-close"
+              onClick={onClose}
+            ></button>
+          </div>
+          <div className="modal-body">
+            <div className="mb-3">
+              <label htmlFor="gistFilename" className="form-label">
+                文件名 (例如: script.py)
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                id="gistFilename"
+                value={filename}
+                onChange={(e) => setFilename(e.target.value)}
+                placeholder="script.py"
+              />
+            </div>
+            <div className="mb-3">
+              <label htmlFor="gistDescription" className="form-label">
+                描述 (这个片段是干嘛的？)
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                id="gistDescription"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <label htmlFor="gistContent" className="form-label">
+                内容
+              </label>
+              <textarea
+                className="form-control"
+                id="gistContent"
+                rows={15}
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                required
+              ></textarea>
+            </div>
+          </div>
+          <div className="modal-footer">
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={onClose}
+            >
+              关闭
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleSave}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <span
+                    className="spinner-border spinner-border-sm me-2"
+                    role="status"
+                    aria-hidden="true"
+                  ></span>
+                  保存中...
+                </>
+              ) : (
+                "保存"
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+文件: D:\next_js\next-js-gist-app\src\components\LoadingSpinner.tsx
+内容:
+interface LoadingSpinnerProps {
+  size?: "sm" | "md" | "lg";
+  text?: string;
+}
+
+export default function LoadingSpinner({
+  size = "md",
+  text,
+}: LoadingSpinnerProps) {
+  const sizeClass = {
+    sm: "spinner-border-sm",
+    md: "",
+    lg: "spinner-border-lg",
+  }[size];
+
+  return (
+    <div className="d-flex justify-content-center align-items-center p-4">
+      <div className={`spinner-border text-primary ${sizeClass}`} role="status">
+        <span className="visually-hidden">Loading...</span>
+      </div>
+      {text && <span className="ms-2 text-muted">{text}</span>}
+    </div>
+  );
+}
+
+
+文件: D:\next_js\next-js-gist-app\src\lib\constants.ts
+内容:
+// 应用配置常量
+export const APP_CONFIG = {
+  PREVIEW_LINE_COUNT: 15,
+  MAX_FILENAME_LENGTH: 50,
+  MAX_DESCRIPTION_LENGTH: 200,
+  MAX_CONTENT_LENGTH: 50000,
+} as const;
+
+// 文件类型映射
+export const FILE_TYPE_MAPPING = {
+  js: "javascript",
+  ts: "typescript",
+  jsx: "javascript",
+  tsx: "typescript",
+  py: "python",
+  html: "html",
+  css: "css",
+  json: "json",
+  md: "markdown",
+  sql: "sql",
+  sh: "bash",
+  bat: "batch",
+  yml: "yaml",
+  yaml: "yaml",
+  xml: "xml",
+} as const;
+
+// 默认文件扩展名推测
+export const CONTENT_TYPE_DETECTION = [
+  {
+    patterns: ["function", "const", "let", "var", "=>", "import", "export"],
+    extension: "js",
+    language: "javascript",
+  },
+  {
+    patterns: ["def ", "import ", "from ", "class ", "if __name__"],
+    extension: "py",
+    language: "python",
+  },
+  {
+    patterns: ["<html", "<div", "<span", "<!DOCTYPE"],
+    extension: "html",
+    language: "html",
+  },
+  {
+    patterns: ["SELECT", "INSERT", "UPDATE", "DELETE", "CREATE TABLE"],
+    extension: "sql",
+    language: "sql",
+  },
+  {
+    patterns: ["{", "}", '":', '":'],
+    extension: "json",
+    language: "json",
+  },
+] as const;
+
+
+文件: D:\next_js\next-js-gist-app\src\lib\data-adapter.ts
+内容:
+// 数据存储适配器 - 根据环境自动选择存储方案
+import { Gist } from "./data";
+
+// 根据环境变量决定使用哪种数据存储
+const getDataProvider = async () => {
+  // 优先使用 Neon 数据库（如果有 DATABASE_URL 配置）
+  if (process.env.DATABASE_URL) {
+    console.log("Using Neon PostgreSQL database");
+    const { loadGists, saveGists, getGist, deleteGist } = await import(
+      "./data-neon"
+    );
+    return { loadGists, saveGists, getGist, deleteGist };
+  }
+
+  // 默认使用本地文件存储（开发环境）
+  console.log("Using local file storage");
+  const { loadGists, saveGists } = await import("./data");
+
+  // 为本地存储添加缺失的方法
+  const getGist = async (id: string): Promise<Gist | null> => {
+    const gists = await loadGists();
+    return gists.find((g) => g.id === id) || null;
+  };
+
+  const deleteGist = async (id: string): Promise<boolean> => {
+    const gists = await loadGists();
+    const filteredGists = gists.filter((g) => g.id !== id);
+
+    if (gists.length === filteredGists.length) {
+      return false;
+    }
+
+    await saveGists(filteredGists);
+    return true;
+  };
+
+  return { loadGists, saveGists, getGist, deleteGist };
+};
+
+// 导出统一的接口
+export const loadGists = async (): Promise<Gist[]> => {
+  const provider = await getDataProvider();
+  return provider.loadGists();
+};
+
+export const saveGists = async (gists: Gist[]): Promise<void> => {
+  const provider = await getDataProvider();
+  return provider.saveGists(gists);
+};
+
+export const getGist = async (id: string): Promise<Gist | null> => {
+  const provider = await getDataProvider();
+  return provider.getGist(id);
+};
+
+export const deleteGist = async (id: string): Promise<boolean> => {
+  const provider = await getDataProvider();
+  return provider.deleteGist(id);
+};
+
+// 保存单个 gist（新增或更新）
+export const saveGist = async (gistData: Partial<Gist>): Promise<Gist> => {
+  const gists = await loadGists();
+
+  if (gistData.id) {
+    // 更新现有 gist
+    const index = gists.findIndex((g) => g.id === gistData.id);
+    if (index === -1) {
+      throw new Error("Gist not found");
+    }
+
+    const updatedGist = {
+      ...gists[index],
+      ...gistData,
+      updated_at: Date.now(),
+    } as Gist;
+
+    gists[index] = updatedGist;
+    await saveGists(gists);
+    return updatedGist;
+  } else {
+    // 创建新 gist
+    const { randomUUID } = await import("crypto");
+    const newGist: Gist = {
+      id: randomUUID(),
+      description: gistData.description || "",
+      filename: gistData.filename || "untitled.txt",
+      content: gistData.content || "",
+      created_at: Date.now(),
+      updated_at: Date.now(),
+    };
+
+    gists.unshift(newGist);
+    await saveGists(gists);
+    return newGist;
+  }
+};
+
+
+文件: D:\next_js\next-js-gist-app\src\lib\data-neon.ts
+内容:
+import { Pool } from "@neondatabase/serverless";
+
+export interface Gist {
+  id: string;
+  description: string;
+  filename: string;
+  content: string;
+  created_at: number;
+  updated_at: number;
+}
+
+// Neon 数据库连接池
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+/**
+ * 从 Neon 数据库加载所有 gists
+ */
+export async function loadGists(): Promise<Gist[]> {
+  try {
+    console.log("Loading gists from Neon database...");
+
+    const client = await pool.connect();
+    const result = await client.query(
+      "SELECT * FROM gists ORDER BY updated_at DESC"
+    );
+    client.release();
+
+    const gists: Gist[] = result.rows.map((row) => ({
+      id: row.id,
+      description: row.description,
+      filename: row.filename,
+      content: row.content,
+      created_at: parseInt(row.created_at),
+      updated_at: parseInt(row.updated_at),
+    }));
+
+    console.log(`Successfully loaded ${gists.length} gists from Neon`);
+    return gists;
+  } catch (error) {
+    console.error("Error loading gists from Neon:", error);
+    return [];
+  }
+}
+
+/**
+ * 保存单个 gist 到 Neon 数据库
+ */
+export async function saveGist(gist: Gist): Promise<Gist> {
+  try {
+    const client = await pool.connect();
+
+    // 使用 UPSERT (INSERT ... ON CONFLICT)
+    const result = await client.query(
+      `
+      INSERT INTO gists (id, description, filename, content, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      ON CONFLICT (id) 
+      DO UPDATE SET 
+        description = EXCLUDED.description,
+        filename = EXCLUDED.filename,
+        content = EXCLUDED.content,
+        updated_at = EXCLUDED.updated_at
+      RETURNING *
+    `,
+      [
+        gist.id,
+        gist.description,
+        gist.filename,
+        gist.content,
+        gist.created_at,
+        gist.updated_at,
+      ]
+    );
+
+    client.release();
+
+    const savedGist: Gist = {
+      id: result.rows[0].id,
+      description: result.rows[0].description,
+      filename: result.rows[0].filename,
+      content: result.rows[0].content,
+      created_at: parseInt(result.rows[0].created_at),
+      updated_at: parseInt(result.rows[0].updated_at),
+    };
+
+    console.log("Successfully saved gist to Neon");
+    return savedGist;
+  } catch (error) {
+    console.error("Error saving gist to Neon:", error);
+    throw new Error("Failed to save gist to database");
+  }
+}
+
+/**
+ * 批量保存 gists（为了兼容现有接口）
+ */
+export async function saveGists(gists: Gist[]): Promise<void> {
+  try {
+    const client = await pool.connect();
+
+    // 开始事务
+    await client.query("BEGIN");
+
+    try {
+      // 清空现有数据
+      await client.query("DELETE FROM gists");
+
+      // 批量插入新数据
+      for (const gist of gists) {
+        await client.query(
+          `
+          INSERT INTO gists (id, description, filename, content, created_at, updated_at)
+          VALUES ($1, $2, $3, $4, $5, $6)
+        `,
+          [
+            gist.id,
+            gist.description,
+            gist.filename,
+            gist.content,
+            gist.created_at,
+            gist.updated_at,
+          ]
+        );
+      }
+
+      // 提交事务
+      await client.query("COMMIT");
+      console.log(`Successfully saved ${gists.length} gists to Neon`);
+    } catch (error) {
+      // 回滚事务
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error("Error batch saving gists to Neon:", error);
+    throw new Error("Failed to save gists to database");
+  }
+}
+
+/**
+ * 获取单个 gist
+ */
+export async function getGist(id: string): Promise<Gist | null> {
+  try {
+    const client = await pool.connect();
+    const result = await client.query("SELECT * FROM gists WHERE id = $1", [
+      id,
+    ]);
+    client.release();
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    const row = result.rows[0];
+    return {
+      id: row.id,
+      description: row.description,
+      filename: row.filename,
+      content: row.content,
+      created_at: parseInt(row.created_at),
+      updated_at: parseInt(row.updated_at),
+    };
+  } catch (error) {
+    console.error("Error getting gist from Neon:", error);
+    return null;
+  }
+}
+
+/**
+ * 删除单个 gist
+ */
+// --- 修改为 (处理可能的 null) ---
+export async function deleteGist(id: string): Promise<boolean> {
+  try {
+    const client = await pool.connect();
+    const result = await client.query("DELETE FROM gists WHERE id = $1", [id]);
+    client.release();
+
+    console.log("Successfully deleted gist from Neon");
+    // 如果 result.rowCount 是 null，则我们视其为 0。
+    return (result.rowCount ?? 0) > 0; 
+  } catch (error) {
+    console.error("Error deleting gist from Neon:", error);
+    return false;
+  }
+}
+
+
+/**
+ * 获取 gists 统计信息
+ */
+export async function getGistStats(): Promise<{
+  total: number;
+  lastUpdated: number | null;
+}> {
+  try {
+    const client = await pool.connect();
+    const result = await client.query(`
+      SELECT 
+        COUNT(*) as total,
+        MAX(updated_at) as last_updated
+      FROM gists
+    `);
+    client.release();
+
+    return {
+      total: parseInt(result.rows[0].total),
+      lastUpdated: result.rows[0].last_updated
+        ? parseInt(result.rows[0].last_updated)
+        : null,
+    };
+  } catch (error) {
+    console.error("Error getting gist stats from Neon:", error);
+    return { total: 0, lastUpdated: null };
+  }
+}
+
+
+文件: D:\next_js\next-js-gist-app\src\lib\data.ts
+内容:
+import fs from "fs/promises";
+import path from "path";
+
+// 定义 Gist 的数据结构类型，这就是 TypeScript 的好处
+export interface Gist {
+  id: string;
+  description: string;
+  filename: string;
+  content: string;
+  created_at: number;
+  updated_at: number;
+}
+
+// 找到 gists.json 文件的绝对路径
+// process.cwd() 指向项目根目录
+const dataFilePath = path.join(process.cwd(), "gists.json");
+
+/**
+ * 从 gists.json 文件加载数据
+ */
+// --- 让这个函数开口说话 ---
+export async function loadGists(): Promise<Gist[]> {
+  // 日志1：告诉我们它到底在找哪个路径的文件
+  console.log("Attempting to load gists from:", dataFilePath);
+
+  try {
+    const fileContent = await fs.readFile(dataFilePath, "utf-8");
+    if (!fileContent) {
+      // 日志2：告诉我们文件是空的
+      console.log("gists.json is empty.");
+      return [];
+    }
+    const gists: Gist[] = JSON.parse(fileContent);
+    // 日志3：告诉我们成功加载了多少条数据
+    console.log(`Successfully loaded ${gists.length} gists.`);
+    return gists;
+  } catch (error) {
+    // 日志4：如果出错了，把错误信息打印出来！
+    console.error("!!! Critical Error loading gists.json:", error);
+    return [];
+  }
+}
+
+/**
+ * 将数据保存到 gists.json 文件
+ * @param gists 要保存的 Gist 数组
+ */
+export async function saveGists(gists: Gist[]): Promise<void> {
+  try {
+    // 将 gists 数组转换成格式化的 JSON 字符串
+    const data = JSON.stringify(gists, null, 4); // null, 4 用于美化输出，类似 Python 的 indent=4
+    // 异步写入文件
+    await fs.writeFile(dataFilePath, data, "utf-8");
+    console.log(`Successfully saved ${gists.length} gists.`);
+  } catch (error) {
+    console.error("!!! Critical Error saving gists:", error);
+    throw new Error("Failed to save gists to file");
+  }
+}
+
+
+文件: D:\next_js\next-js-gist-app\src\lib\utils.ts
+内容:
+import { CONTENT_TYPE_DETECTION, FILE_TYPE_MAPPING } from "./constants";
+
+/**
+ * 根据内容推测文件类型和扩展名
+ */
+export function detectFileType(content: string): {
+  extension: string;
+  language: string;
+} {
+  const lowerContent = content.toLowerCase();
+
+  for (const detection of CONTENT_TYPE_DETECTION) {
+    if (
+      detection.patterns.some((pattern) =>
+        lowerContent.includes(pattern.toLowerCase())
+      )
+    ) {
+      return {
+        extension: detection.extension,
+        language: detection.language,
+      };
+    }
+  }
+
+  return { extension: "txt", language: "plaintext" };
+}
+
+/**
+ * 根据文件名获取语言类型
+ */
+export function getLanguageFromFilename(filename: string): string {
+  const extension = filename.split(".").pop()?.toLowerCase();
+  if (!extension) return "plaintext";
+
+  return (
+    FILE_TYPE_MAPPING[extension as keyof typeof FILE_TYPE_MAPPING] ||
+    "plaintext"
+  );
+}
+
+/**
+ * 格式化时间戳为可读格式
+ */
+export function formatTimestamp(timestamp: number): string {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+
+  if (diffInHours < 1) {
+    const diffInMinutes = Math.floor(diffInHours * 60);
+    return diffInMinutes <= 1 ? "刚刚" : `${diffInMinutes}分钟前`;
+  } else if (diffInHours < 24) {
+    return `${Math.floor(diffInHours)}小时前`;
+  } else if (diffInHours < 24 * 7) {
+    return `${Math.floor(diffInHours / 24)}天前`;
+  } else {
+    return date.toLocaleDateString("zh-CN");
+  }
+}
+
+/**
+ * 截断文本到指定长度
+ */
+export function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength - 3) + "...";
+}
+
+/**
+ * 验证gist数据
+ */
+
+
+// --- 修改为 ---
+
+// 在函数上方定义一个输入类型
+interface GistValidationData {
+  description?: unknown;
+  content?: unknown;
+}
+
+export function validateGistData(data: GistValidationData): {
+  isValid: boolean;
+  errors: string[];
+} {
+  const errors: string[] = [];
+
+  // 为了安全，我们先检查类型再使用
+  if (
+    !data.description ||
+    typeof data.description !== "string" ||
+    !data.description.trim()
+  ) {
+    errors.push("描述不能为空");
+  }
+
+  if (
+    !data.content ||
+    typeof data.content !== "string" ||
+    !data.content.trim()
+  ) {
+    errors.push("内容不能为空");
+  }
+
+  // 只有在确定是字符串后才检查长度
+  if (typeof data.description === 'string' && data.description.length > 200) {
+    errors.push("描述长度不能超过200个字符");
+  }
+
+  if (typeof data.content === 'string' && data.content.length > 50000) {
+    errors.push("内容长度不能超过50000个字符");
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+  };
+}
