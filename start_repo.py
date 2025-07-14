@@ -11,6 +11,11 @@ load_dotenv()
 GITHUB_USER = "buxuele"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
+# 如果没有找到 token，尝试从用户输入获取
+if not GITHUB_TOKEN:
+    print("⚠️  未在 .env 文件中找到 GITHUB_TOKEN")
+    GITHUB_TOKEN = input("请输入你的 GitHub Personal Access Token: ").strip()
+
 gitignore_content = """# 默认 .gitignore 文件，由 start_repo.py 创建
 # 请编辑此文件以添加需要忽略的文件或目录
 node_modules/
