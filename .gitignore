@@ -12,6 +12,9 @@ yarn-error.log*
 # 账号相关，密码
 .env
 .env.local
+github_auth.md
+
+
 
 # 临时文件和日志
 read_my_files.txt

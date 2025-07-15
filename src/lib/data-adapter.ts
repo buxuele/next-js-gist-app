@@ -17,6 +17,14 @@ const getDataProvider = async () => {
   const { loadGists, saveGists } = await import("./data");
 
   // 为本地存储添加缺失的方法
+  const loadGistsWithUserId = async (userId?: string): Promise<Gist[]> => {
+    const allGists = await loadGists();
+    if (userId) {
+      return allGists.filter((g) => g.user_id === userId);
+    }
+    return allGists;
+  };
+
   const getGist = async (id: string): Promise<Gist | null> => {
     const gists = await loadGists();
     return gists.find((g) => g.id === id) || null;
@@ -34,13 +42,13 @@ const getDataProvider = async () => {
     return true;
   };
 
-  return { loadGists, saveGists, getGist, deleteGist };
+  return { loadGists: loadGistsWithUserId, saveGists, getGist, deleteGist };
 };
 
 // 导出统一的接口
-export const loadGists = async (): Promise<Gist[]> => {
+export const loadGists = async (userId?: string): Promise<Gist[]> => {
   const provider = await getDataProvider();
-  return provider.loadGists();
+  return provider.loadGists(userId);
 };
 
 export const saveGists = async (gists: Gist[]): Promise<void> => {
@@ -60,6 +68,34 @@ export const deleteGist = async (id: string): Promise<boolean> => {
 
 // 保存单个 gist（新增或更新）
 export const saveGist = async (gistData: Partial<Gist>): Promise<Gist> => {
+  // 如果使用 Neon 数据库，直接调用 Neon 的 saveGist
+  if (process.env.DATABASE_URL) {
+    const { saveGist: neonSaveGist } = await import("./data-neon");
+
+    if (gistData.id) {
+      // 更新现有 gist
+      const updatedGist = {
+        ...gistData,
+        updated_at: Date.now(),
+      } as Gist;
+      return neonSaveGist(updatedGist);
+    } else {
+      // 创建新 gist
+      const { randomUUID } = await import("crypto");
+      const newGist: Gist = {
+        id: randomUUID(),
+        user_id: gistData.user_id || "",
+        description: gistData.description || "",
+        filename: gistData.filename || "untitled.txt",
+        content: gistData.content || "",
+        created_at: Date.now(),
+        updated_at: Date.now(),
+      };
+      return neonSaveGist(newGist);
+    }
+  }
+
+  // 本地文件存储的逻辑（兼容性）
   const gists = await loadGists();
 
   if (gistData.id) {
@@ -83,6 +119,7 @@ export const saveGist = async (gistData: Partial<Gist>): Promise<Gist> => {
     const { randomUUID } = await import("crypto");
     const newGist: Gist = {
       id: randomUUID(),
+      user_id: gistData.user_id || "",
       description: gistData.description || "",
       filename: gistData.filename || "untitled.txt",
       content: gistData.content || "",

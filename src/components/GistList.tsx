@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useSession, signOut } from "next-auth/react";
 import { Gist } from "@/lib/data";
 import GistCard from "./GistCard";
 import GistModal from "./GistModal";
 import Link from "next/link";
+import Image from "next/image";
 import "highlight.js/styles/atom-one-dark.min.css";
 
 interface GistListProps {
@@ -12,6 +14,7 @@ interface GistListProps {
 }
 
 export default function GistList({ initialGists }: GistListProps) {
+  const { data: session } = useSession();
   const [gists, setGists] = useState(initialGists);
   const [showModal, setShowModal] = useState(false);
   const [gistToEdit, setGistToEdit] = useState<Gist | null>(null);
@@ -78,12 +81,62 @@ export default function GistList({ initialGists }: GistListProps) {
           <Link className="navbar-brand" href="/">
             <i className="bi bi-grid-1x2-fill"></i> 我的知识库
           </Link>
-          <button
-            className="btn btn-success"
-            onClick={() => handleOpenModal(null)}
-          >
-            <i className="bi bi-plus-circle"></i> 添加
-          </button>
+
+          <div className="d-flex align-items-center gap-3">
+            <button
+              className="btn btn-success"
+              onClick={() => handleOpenModal(null)}
+            >
+              <i className="bi bi-plus-circle"></i> 添加
+            </button>
+
+            {session && (
+              <div className="dropdown">
+                <button
+                  className="btn btn-outline-light dropdown-toggle d-flex align-items-center gap-2"
+                  type="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  {session.user?.image && (
+                    <Image
+                      src={session.user.image}
+                      alt="Avatar"
+                      className="rounded-circle"
+                      width={24}
+                      height={24}
+                    />
+                  )}
+                  <span>
+                    {(session.user as any)?.username || session.user?.name}
+                  </span>
+                </button>
+                <ul className="dropdown-menu dropdown-menu-end">
+                  <li>
+                    <span className="dropdown-item-text">
+                      <small className="text-muted">登录为</small>
+                      <br />
+                      <strong>
+                        {(session.user as any)?.username || session.user?.name}
+                      </strong>
+                    </span>
+                  </li>
+                  <li>
+                    <hr className="dropdown-divider" />
+                  </li>
+                  <li>
+                    <button
+                      className="dropdown-item"
+                      onClick={() => signOut({ callbackUrl: "/login" })}
+                    >
+                      <i className="bi bi-box-arrow-right me-2"></i>
+                      登出
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            )}
+          </div>
         </div>
       </nav>
 

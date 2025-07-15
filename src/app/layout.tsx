@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { SessionProvider } from "@/components/SessionProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -34,7 +35,9 @@ export default function RootLayout({
         */}
 
         {/* {children} 会渲染我们具体的页面，比如带有导航栏的 GistList */}
-        <ErrorBoundary>{children}</ErrorBoundary>
+        <SessionProvider>
+          <ErrorBoundary>{children}</ErrorBoundary>
+        </SessionProvider>
 
         {/* Bootstrap 的 JS 脚本依然保留在这里 */}
         <script

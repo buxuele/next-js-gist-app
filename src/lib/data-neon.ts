@@ -2,6 +2,7 @@ import { Pool } from "@neondatabase/serverless";
 
 export interface Gist {
   id: string;
+  user_id: string;
   description: string;
   filename: string;
   content: string;
@@ -13,20 +14,33 @@ export interface Gist {
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 /**
- * 从 Neon 数据库加载所有 gists
+ * 从 Neon 数据库加载指定用户的 gists
  */
-export async function loadGists(): Promise<Gist[]> {
+export async function loadGists(userId?: string): Promise<Gist[]> {
   try {
     console.log("Loading gists from Neon database...");
 
     const client = await pool.connect();
-    const result = await client.query(
-      "SELECT * FROM gists ORDER BY updated_at DESC"
-    );
+    let result;
+
+    if (userId) {
+      // 加载特定用户的 gists
+      result = await client.query(
+        "SELECT * FROM gists WHERE user_id = $1 ORDER BY updated_at DESC",
+        [userId]
+      );
+    } else {
+      // 加载所有 gists（用于管理员或兼容性）
+      result = await client.query(
+        "SELECT * FROM gists ORDER BY updated_at DESC"
+      );
+    }
+
     client.release();
 
     const gists: Gist[] = result.rows.map((row) => ({
       id: row.id,
+      user_id: row.user_id,
       description: row.description,
       filename: row.filename,
       content: row.content,
@@ -52,8 +66,8 @@ export async function saveGist(gist: Gist): Promise<Gist> {
     // 使用 UPSERT (INSERT ... ON CONFLICT)
     const result = await client.query(
       `
-      INSERT INTO gists (id, description, filename, content, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO gists (id, user_id, description, filename, content, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       ON CONFLICT (id) 
       DO UPDATE SET 
         description = EXCLUDED.description,
@@ -64,6 +78,7 @@ export async function saveGist(gist: Gist): Promise<Gist> {
     `,
       [
         gist.id,
+        gist.user_id,
         gist.description,
         gist.filename,
         gist.content,
@@ -76,6 +91,7 @@ export async function saveGist(gist: Gist): Promise<Gist> {
 
     const savedGist: Gist = {
       id: result.rows[0].id,
+      user_id: result.rows[0].user_id,
       description: result.rows[0].description,
       filename: result.rows[0].filename,
       content: result.rows[0].content,
@@ -109,11 +125,12 @@ export async function saveGists(gists: Gist[]): Promise<void> {
       for (const gist of gists) {
         await client.query(
           `
-          INSERT INTO gists (id, description, filename, content, created_at, updated_at)
-          VALUES ($1, $2, $3, $4, $5, $6)
+          INSERT INTO gists (id, user_id, description, filename, content, created_at, updated_at)
+          VALUES ($1, $2, $3, $4, $5, $6, $7)
         `,
           [
             gist.id,
+            gist.user_id,
             gist.description,
             gist.filename,
             gist.content,
@@ -157,6 +174,7 @@ export async function getGist(id: string): Promise<Gist | null> {
     const row = result.rows[0];
     return {
       id: row.id,
+      user_id: row.user_id,
       description: row.description,
       filename: row.filename,
       content: row.content,
@@ -181,13 +199,12 @@ export async function deleteGist(id: string): Promise<boolean> {
 
     console.log("Successfully deleted gist from Neon");
     // 如果 result.rowCount 是 null，则我们视其为 0。
-    return (result.rowCount ?? 0) > 0; 
+    return (result.rowCount ?? 0) > 0;
   } catch (error) {
     console.error("Error deleting gist from Neon:", error);
     return false;
   }
 }
-
 
 /**
  * 获取 gists 统计信息

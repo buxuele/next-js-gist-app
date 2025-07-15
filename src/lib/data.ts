@@ -4,6 +4,7 @@ import path from "path";
 // 定义 Gist 的数据结构类型，这就是 TypeScript 的好处
 export interface Gist {
   id: string;
+  user_id: string;
   description: string;
   filename: string;
   content: string;
